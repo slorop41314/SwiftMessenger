@@ -8,6 +8,7 @@
 import UIKit
 import FBSDKLoginKit
 import FirebaseAuth
+import GoogleSignIn
 
 private let cellIdentifier = "profileCell"
 
@@ -49,7 +50,13 @@ extension ProfileViewController: UITableViewDelegate, UITableViewDataSource {
         confirmationAlert.addAction(UIAlertAction(title: "Logout", style: .destructive, handler: { [weak self] _ in
             guard let self = self else {return}
             
+            // Facebook logout
             LoginManager().logOut()
+            
+            // Google logout
+            GIDSignIn.sharedInstance()?.signOut()
+            
+            // Firebase logout
             do {
                 try FirebaseAuth.Auth.auth().signOut()
                 
