@@ -7,6 +7,7 @@
 
 import UIKit
 import FirebaseAuth
+import FBSDKLoginKit
 
 class LoginViewController: UIViewController {
     
@@ -71,6 +72,13 @@ class LoginViewController: UIViewController {
         return button
     }()
     
+    
+    private let fbLoginButton: FBLoginButton = {
+        let btn = FBLoginButton()
+        btn.permissions = ["email","public_profile"]
+        return btn
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -94,6 +102,7 @@ class LoginViewController: UIViewController {
     func setupBody() {
         emailField.delegate = self
         passwordField.delegate = self
+        fbLoginButton.delegate = self
         loginButton.addTarget(self, action: #selector(onLoginButtonTapped), for: .touchUpInside)
         
         view.addSubview(scrollView)
@@ -101,6 +110,7 @@ class LoginViewController: UIViewController {
         scrollView.addSubview(emailField)
         scrollView.addSubview(passwordField)
         scrollView.addSubview(loginButton)
+        scrollView.addSubview(fbLoginButton)
     }
     
     override func viewDidLayoutSubviews() {
@@ -113,6 +123,10 @@ class LoginViewController: UIViewController {
         emailField.frame = CGRect(x: 30, y: logoImageView.bottom + 16, width: scrollView.width - 60, height: 45)
         passwordField.frame = CGRect(x: 30, y: emailField.bottom + 16, width: scrollView.width - 60, height: 45)
         loginButton.frame = CGRect(x: 30, y: passwordField.bottom + 32, width: scrollView.width - 60, height: 45)
+        
+        
+        fbLoginButton.center = scrollView.center
+        fbLoginButton.frame = CGRect(x: 30, y: loginButton.bottom + 32, width: scrollView.width - 60, height: 45)
     }
     
     @objc func onLoginButtonTapped() {
@@ -120,7 +134,7 @@ class LoginViewController: UIViewController {
         passwordField.resignFirstResponder()
         
         guard let email = emailField.text, let password = passwordField.text, !email.isEmpty, !password.isEmpty, password.count >= 6 else {
-            callErrorAlert()
+            callErrorAlert(message: "Please fill all field to login")
             return
         }
         
@@ -134,11 +148,11 @@ class LoginViewController: UIViewController {
             self.navigationController?.dismiss(animated: true, completion: nil)
             
         }
-
+        
     }
     
-    private func callErrorAlert() {
-        let alert = UIAlertController(title: "Whoops", message: "Please fill all field to login", preferredStyle: .alert)
+    private func callErrorAlert(message: String) {
+        let alert = UIAlertController(title: "Whoops", message: message, preferredStyle: .alert)
         
         alert.addAction(UIAlertAction(title: "Close", style: .cancel, handler: nil))
         
@@ -168,5 +182,64 @@ extension LoginViewController: UITextFieldDelegate {
         }
         
         return true
+    }
+}
+
+extension LoginViewController : LoginButtonDelegate {
+    func loginButtonDidLogOut(_ loginButton: FBLoginButton) {
+        // No operation
+    }
+    
+    func loginButton(_ loginButton: FBLoginButton, didCompleteWith result: LoginManagerLoginResult?, error: Error?) {
+        guard let token = result?.token?.tokenString else {
+            print("Error login to faceboook")
+            return
+        }
+        
+        let facebookRequest = FBSDKLoginKit.GraphRequest(graphPath: "me", parameters: ["fields": "email, name"], tokenString: token, version: nil, httpMethod: .get)
+        
+        facebookRequest.start { (_, result, err) in
+            
+            guard let result = result as? [String: Any] else {
+                if let error = err {
+                    self.callErrorAlert(message: error.localizedDescription)
+                }
+                return
+            }
+            
+            guard let email = result["email"] as? String, let name = result["name"] as? String else {
+                return
+            }
+            
+            let nameComponents = name.components(separatedBy: " ")
+            
+            guard nameComponents.count == 2 else {return}
+            
+            let firstName = nameComponents[0]
+            let lastName = nameComponents[1]
+            
+            DatabaseManager.shared.didEmailAlreadyUsed(with: email) { isUsed in
+                if !isUsed {
+                    DatabaseManager.shared.insertUser(with: ChatAppUser(firstName: firstName, lastName: lastName, emailAddress: email))
+                }
+            }
+            
+            let credential = FacebookAuthProvider.credential(withAccessToken: token)
+            
+            FirebaseAuth.Auth.auth().signIn(with : credential) { [weak self](authResult, err) in
+                guard let self = self else {return}
+                if let error = err {
+                    self.callErrorAlert(message: error.localizedDescription)
+                    return
+                }
+                
+                self.navigationController?.dismiss(animated: true, completion: nil)
+            }
+            
+            
+        }
+        
+        
+        
     }
 }

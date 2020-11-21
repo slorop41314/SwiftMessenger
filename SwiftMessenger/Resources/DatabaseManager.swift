@@ -19,9 +19,23 @@ final class DatabaseManager {
 //MARK: - Account Manager
 
 extension DatabaseManager {
+    /// Checking user email is existed
+    public func didEmailAlreadyUsed(with email: String, completion: @escaping((Bool) -> Void)){
+        let safeEmail = email.replacingOccurrences(of: ".", with: "-")
+        database.child(safeEmail).observeSingleEvent(of: .value) { (snapshot, _) in
+            guard snapshot.value as? String != nil else {
+                completion(false)
+                return
+                
+            }
+            completion(true)
+        }
+
+    }
+    
+    
     /// Insert new user to database
     public func insertUser(with user: ChatAppUser){
-        
         database.child(user.safeEmail).setValue([
             "firstName": user.firstName,
             "lastName": user.lastName
