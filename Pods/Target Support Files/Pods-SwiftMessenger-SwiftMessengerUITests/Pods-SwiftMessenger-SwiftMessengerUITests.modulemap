@@ -1,0 +1,6 @@
+framework module Pods_SwiftMessenger_SwiftMessengerUITests {
+  umbrella header "Pods-SwiftMessenger-SwiftMessengerUITests-umbrella.h"
+
+  export *
+  module * { export * }
+}

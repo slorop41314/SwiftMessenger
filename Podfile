@@ -6,6 +6,9 @@ target 'SwiftMessenger' do
   use_frameworks!
 
   # Pods for SwiftMessenger
+	pod 'Firebase/Core'
+	pod 'Firebase/Auth'
+	pod 'Firebase/Database'
 
   target 'SwiftMessengerTests' do
     inherit! :search_paths

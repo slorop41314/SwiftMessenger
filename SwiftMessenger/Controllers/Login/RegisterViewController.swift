@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import FirebaseAuth
 
 class RegisterViewController: UIViewController {
     
@@ -18,9 +19,12 @@ class RegisterViewController: UIViewController {
     
     private let avatarImageView: UIImageView = {
         let imgView = UIImageView()
-        imgView.image = UIImage(systemName: "person")
+        imgView.image = UIImage(systemName: "person.circle")
         imgView.tintColor = .gray
         imgView.contentMode = .scaleAspectFit
+        imgView.layer.masksToBounds = true
+        imgView.layer.borderWidth = 2
+        imgView.layer.borderColor = UIColor.gray.cgColor
         
         return imgView
     }()
@@ -151,6 +155,8 @@ class RegisterViewController: UIViewController {
         
         let size = scrollView.width / 3
         avatarImageView.frame = CGRect(x: (scrollView.width - size)/2, y: 40, width: size, height: size)
+        
+        avatarImageView.layer.cornerRadius = size / 2
         firstNameField.frame = CGRect(x: 30, y: avatarImageView.bottom + 16, width: scrollView.width - 60, height: 45)
         lastNameField.frame = CGRect(x: 30, y: firstNameField.bottom + 16, width: scrollView.width - 60, height: 45)
         emailField.frame = CGRect(x: 30, y: lastNameField.bottom + 16, width: scrollView.width - 60, height: 45)
@@ -164,14 +170,34 @@ class RegisterViewController: UIViewController {
         emailField.resignFirstResponder()
         passwordField.resignFirstResponder()
         
+        // Validate field
+        
         guard let firstName = firstNameField.text, let lastName = lastNameField.text,let email = emailField.text, let password = passwordField.text,!firstName.isEmpty,!lastName.isEmpty, !email.isEmpty, !password.isEmpty, password.count >= 6 else {
-            callErrorAlert()
+            callErrorAlert(message: "All field should not be empty")
             return
         }
+        
+        // Login user to firebase
+        
+        FirebaseAuth.Auth.auth().createUser(withEmail: email, password: password) { [weak self](authResult, err) in
+            guard let self = self else {return}
+            if let error = err {
+                self.callErrorAlert(message: error.localizedDescription)
+                return
+            }
+            
+            DatabaseManager.shared.insertUser(with: ChatAppUser(firstName: firstName, lastName: lastName, emailAddress: email))
+            
+            self.navigationController?.dismiss(animated: true, completion: nil)
+            
+        }
+        
+        
+        
     }
     
-    private func callErrorAlert() {
-        let alert = UIAlertController(title: "Whoops", message: "Please fill all field to register", preferredStyle: .alert)
+    private func callErrorAlert(message: String) {
+        let alert = UIAlertController(title: "Whoops", message: message, preferredStyle: .alert)
         
         alert.addAction(UIAlertAction(title: "Close", style: .cancel, handler: nil))
         
@@ -186,7 +212,7 @@ class RegisterViewController: UIViewController {
     }
     
     @objc private func didTapChangeAvatar() {
-        print("Change avatar")
+        presentPhotoActionSheet()
     }
     
 }
@@ -213,5 +239,49 @@ extension RegisterViewController: UITextFieldDelegate {
         }
         
         return true
+    }
+}
+
+extension RegisterViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    
+    func presentPhotoActionSheet() {
+        let actionSheet = UIAlertController(title: "Profile Picture", message: "Select picture from", preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: "Camera", style: .default, handler: {[weak self] _ in
+                                                self?.presentCamera()
+            
+        }))
+        actionSheet.addAction(UIAlertAction(title: "Library", style: .default, handler: {[weak self] _ in
+            self?.presentPhotoPicker()
+        }))
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(actionSheet, animated: true)
+    }
+    
+    func presentPhotoPicker() {
+        let vc = UIImagePickerController()
+        vc.delegate = self
+        vc.sourceType = .photoLibrary
+        vc.allowsEditing = true
+        present(vc, animated: true)
+    }
+    
+    func presentCamera() {
+        let vc = UIImagePickerController()
+        vc.delegate = self
+        vc.sourceType = .camera
+        vc.allowsEditing = true
+        present(vc, animated: true)
+    }
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true, completion: nil)
+    }
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+       
+        picker.dismiss(animated: true, completion: nil)
+        guard let selectedImage = info[UIImagePickerController.InfoKey.editedImage] as? UIImage else {return}
+        
+        self.avatarImageView.image = selectedImage
     }
 }
