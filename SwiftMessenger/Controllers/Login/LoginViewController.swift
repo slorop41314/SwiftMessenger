@@ -95,8 +95,8 @@ class LoginViewController: UIViewController {
     }
     
     deinit {
-        if let observer = googleLoginObserver {
-            NotificationCenter.default.removeObserver(googleLoginObserver)
+        if let _ = googleLoginObserver {
+            NotificationCenter.default.removeObserver(googleLoginObserver as Any)
         }
     }
     

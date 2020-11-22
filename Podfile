@@ -11,6 +11,10 @@ target 'SwiftMessenger' do
 	pod 'Firebase/Database'
 	pod 'FBSDKLoginKit'
 	pod 'GoogleSignIn'
+	pod 'MessageKit'
+	pod 'JGProgressHUD'
+	pod 'RealmSwift'
+	pod 'SDWebImage'
 
   target 'SwiftMessengerTests' do
     inherit! :search_paths
