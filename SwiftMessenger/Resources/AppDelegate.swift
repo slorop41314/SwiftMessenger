@@ -54,9 +54,30 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GIDSignInDelegate {
         
         DatabaseManager.shared.didEmailAlreadyUsed(with: email) { isUsed in
             if !isUsed {
+                let chatUser = ChatAppUser(firstName: firstName, lastName: lastName, emailAddress: email)
                 //TODO: - Inserting to database
-                DatabaseManager.shared.insertUser(with: ChatAppUser(firstName: firstName, lastName: lastName, emailAddress: email))
-                return
+                
+                if(user.profile.hasImage){
+                    guard let url = user.profile.imageURL(withDimension: 200) else {return}
+                    
+                    URLSession.shared.dataTask(with: url) { (data, _, _) in
+                        guard let data = data else {return}
+                        DatabaseManager.shared.insertUser(with: chatUser) { (success) in
+                            if success {
+                                let fileName = chatUser.avatarFileName
+                                
+                                StorageManager.shared.uploadProfilePicture(with: data, fileName: fileName) { (result) in
+                                    switch result {
+                                    case .success(let downloadUrl):
+                                        UserDefaults.standard.setValue(downloadUrl, forKey: "profile_picture_url")
+                                    case .failure(let error):
+                                        break
+                                    }
+                                }
+                            }
+                        }
+                    }.resume()
+                }
             }
         }
         

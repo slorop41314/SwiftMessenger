@@ -194,8 +194,26 @@ class RegisterViewController: UIViewController {
                 self.callErrorAlert(message: error.localizedDescription)
                 return
             }
+            let chatUser = ChatAppUser(firstName: firstName, lastName: lastName, emailAddress: email)
             
-            DatabaseManager.shared.insertUser(with: ChatAppUser(firstName: firstName, lastName: lastName, emailAddress: email))
+            DatabaseManager.shared.insertUser(with: chatUser) { (success) in
+                if success {
+                    guard let image = self.avatarImageView.image, let data = image.pngData() else {
+                        return
+                    }
+                    
+                    let fileName = chatUser.avatarFileName
+                    
+                    StorageManager.shared.uploadProfilePicture(with: data, fileName: fileName) { (result) in
+                        switch result {
+                        case .success(let downloadUrl):
+                            UserDefaults.standard.setValue(downloadUrl, forKey: "profile_picture_url")
+                        case .failure(let error):
+                            self.callErrorAlert(message: error.localizedDescription)
+                        }
+                    }
+                }
+            }
             
             self.navigationController?.dismiss(animated: true, completion: nil)
             

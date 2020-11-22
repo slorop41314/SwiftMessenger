@@ -235,7 +235,7 @@ extension LoginViewController : LoginButtonDelegate {
             return
         }
         
-        let facebookRequest = FBSDKLoginKit.GraphRequest(graphPath: "me", parameters: ["fields": "email, name"], tokenString: token, version: nil, httpMethod: .get)
+        let facebookRequest = FBSDKLoginKit.GraphRequest(graphPath: "me", parameters: ["fields": "email, first_name, last_name, picture.type(large)"], tokenString: token, version: nil, httpMethod: .get)
         
         facebookRequest.start { (_, result, err) in
             
@@ -246,20 +246,40 @@ extension LoginViewController : LoginButtonDelegate {
                 return
             }
             
-            guard let email = result["email"] as? String, let name = result["name"] as? String else {
+            guard let email = result["email"] as? String,
+                  let firstName = result["first_name"] as? String,
+                  let lastName = result["last_name"] as? String,
+                  let picture = result["picture"] as? [String : Any],
+                  let data = picture["data"] as? [String : Any],
+                  let pictureUrl = data["url"] as? String
+            else {
                 return
             }
             
-            let nameComponents = name.components(separatedBy: " ")
-            
-            guard nameComponents.count == 2 else {return}
-            
-            let firstName = nameComponents[0]
-            let lastName = nameComponents[1]
-            
             DatabaseManager.shared.didEmailAlreadyUsed(with: email) { isUsed in
                 if !isUsed {
-                    DatabaseManager.shared.insertUser(with: ChatAppUser(firstName: firstName, lastName: lastName, emailAddress: email))
+                    let chatUser = ChatAppUser(firstName: firstName, lastName: lastName, emailAddress: email)
+                    
+                    DatabaseManager.shared.insertUser(with: chatUser) { (success) in
+                        if success {
+                            guard let url = URL(string: pictureUrl) else {return}
+                            
+                            URLSession.shared.dataTask(with: url) { (data, _, _) in
+                                guard let data = data else {return}
+                                let fileName = chatUser.avatarFileName
+                                
+                                StorageManager.shared.uploadProfilePicture(with: data, fileName: fileName) { (result) in
+                                    switch result {
+                                    case .success(let downloadUrl):
+                                        UserDefaults.standard.setValue(downloadUrl, forKey: "profile_picture_url")
+                                    case .failure(let error):
+                                        self.callErrorAlert(message: error.localizedDescription)
+                                    }
+                                }
+                            }.resume()
+                            
+                        }
+                    }
                 }
             }
             
