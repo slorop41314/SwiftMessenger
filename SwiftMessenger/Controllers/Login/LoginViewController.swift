@@ -9,8 +9,11 @@ import UIKit
 import FirebaseAuth
 import FBSDKLoginKit
 import GoogleSignIn
+import JGProgressHUD
 
 class LoginViewController: UIViewController {
+    
+    private let loadingSpinner = JGProgressHUD(style: .dark)
     
     private let scrollView: UIScrollView = {
         let scrollView = UIScrollView()
@@ -159,6 +162,7 @@ class LoginViewController: UIViewController {
     }
     
     @objc func onLoginButtonTapped() {
+        
         emailField.resignFirstResponder()
         passwordField.resignFirstResponder()
         
@@ -166,9 +170,15 @@ class LoginViewController: UIViewController {
             callErrorAlert(message: "Please fill all field to login")
             return
         }
+        loadingSpinner.show(in: view)
         
         FirebaseAuth.Auth.auth().signIn(withEmail: email, password: password) { [weak self](authResult, err) in
             guard let self = self else {return}
+            
+            DispatchQueue.main.async {
+                self.loadingSpinner.dismiss(animated: true)
+            }
+            
             if let error = err {
                 print(error.localizedDescription)
                 return
