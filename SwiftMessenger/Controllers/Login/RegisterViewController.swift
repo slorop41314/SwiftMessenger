@@ -207,6 +207,7 @@ class RegisterViewController: UIViewController {
                     StorageManager.shared.uploadProfilePicture(with: data, fileName: fileName) { (result) in
                         switch result {
                         case .success(let downloadUrl):
+                            UserDefaults.standard.setValue(authResult?.user.email , forKey: .userEmailKey)
                             UserDefaults.standard.setValue(downloadUrl, forKey: "profile_picture_url")
                         case .failure(let error):
                             self.callErrorAlert(message: error.localizedDescription)

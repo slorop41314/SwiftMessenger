@@ -13,7 +13,10 @@ final class DatabaseManager {
     
     private let database = Database.database().reference()
     
-    
+    static func safeEmail(email: String) -> String {
+        var safeEmail = email.replacingOccurrences(of: ".", with: "-")
+        return safeEmail
+    }
 }
 
 //MARK: - Account Manager
@@ -30,7 +33,7 @@ extension DatabaseManager {
             }
             completion(true)
         }
-
+        
     }
     
     
@@ -40,13 +43,69 @@ extension DatabaseManager {
             "firstName": user.firstName,
             "lastName": user.lastName
         ]) { (err, _) in
-            if let error = err {
+            if let _ = err {
                 completion(false)
                 return
             }
-            completion(true)
+            /*
+             [
+             [
+             "name" : "",
+             "safe_email" : ""
+             ]
+             ]
+             */
             
+            self.database.child("users").observeSingleEvent(of: .value) { (snapshot) in
+                if var usersCollection = snapshot.value as? [[String: String]] {
+                    // Append to user dictionary
+                    usersCollection.append(["name" : user.firstName + " " + user.lastName,
+                                            "safe_email" : user.safeEmail])
+                    
+                    self.database.child("users").setValue(usersCollection) { (err, ref) in
+                        if let _ = err {
+                            completion(false)
+                            return
+                        }
+                        
+                        completion(true)
+                    }
+                    
+                }else {
+                    // Create dictionary
+                    let newCollection : [[String: String]] = [
+                        [
+                            "name" : user.firstName + " " + user.lastName,
+                            "safe_email" : user.safeEmail
+                        ]
+                    ]
+                    
+                    self.database.child("users").setValue(newCollection) { (err, ref) in
+                        if let _ = err {
+                            completion(false)
+                            return
+                        }
+                        
+                        completion(true)
+                    }
+                }
+            }
         }
+    }
+    
+    public func getAllUsers(completion: @escaping (Result<[[String: String]], Error>) -> Void) {
+        database.child("users").observeSingleEvent(of: .value) { snapshot in
+            guard let value = snapshot.value as? [[String: String]] else {
+                completion(.failure(DatabaseErrors.failedToFetch))
+                return
+            }
+            
+            completion(.success(value))
+        }
+    }
+    
+    public enum DatabaseErrors: Error {
+        case failedToFetch
     }
 }
 
@@ -56,12 +115,11 @@ struct ChatAppUser {
     let emailAddress: String
     
     var safeEmail: String {
-        let safeEmail = emailAddress.replacingOccurrences(of: ".", with: "-")
-        return safeEmail
+        DatabaseManager.safeEmail(email: emailAddress)
     }
     
     var avatarFileName : String {
         return "\(safeEmail)_profile_picture.png"
     }
-//    let avatarUrl: String
+    //    let avatarUrl: String
 }

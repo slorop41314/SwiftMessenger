@@ -9,6 +9,7 @@ import UIKit
 import FBSDKLoginKit
 import FirebaseAuth
 import GoogleSignIn
+import SDWebImage
 
 private let cellIdentifier = "profileCell"
 
@@ -21,9 +22,52 @@ class ProfileViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        setupUI()
+    }
+    
+    // MARK: - Setup UI
+    
+    func setupUI() {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellIdentifier)
+        tableView.tableHeaderView = createTableHeader()
+    }
+    
+    func createTableHeader() -> UIView? {
+        guard let email = UserDefaults.standard.string(forKey: .userEmailKey) as? String else {
+            return nil
+        }
+        let safeEmail = DatabaseManager.safeEmail(email: email)
+        let fileName = safeEmail + "_profile_picture.png"
+        
+        let path = "images/\(fileName)"
+        
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: self.view.width, height: 300))
+        headerView.backgroundColor = .link
+        
+        let imageView = UIImageView(frame: CGRect(x: (headerView.width - 150) / 2, y:75, width: 150, height: 150))
+        imageView.backgroundColor = .white
+        imageView.contentMode = .scaleAspectFill
+        imageView.layer.borderColor = UIColor.white.cgColor
+        imageView.layer.borderWidth = 3
+        imageView.layer.cornerRadius = imageView.width / 2
+        imageView.layer.masksToBounds = true
+        
+        headerView.addSubview(imageView)
+        
+        StorageManager.shared.downloadUrl(for: path) { (result) in
+            switch result {
+            case .success(let url):
+                DispatchQueue.main.async {
+                    imageView.sd_setImage(with: url, completed: nil)
+                }
+            case .failure(let error):
+                print("error gerting image", error.localizedDescription)
+            }
+        }
+        
+        return headerView
     }
     
 }

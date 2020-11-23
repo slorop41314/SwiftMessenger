@@ -91,6 +91,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GIDSignInDelegate {
                 return
             }
             
+            
+            UserDefaults.standard.setValue(email , forKey: .userEmailKey)
+            
             NotificationCenter.default.post(name: .didGoogleLoginNotification, object: nil)
         }
     }

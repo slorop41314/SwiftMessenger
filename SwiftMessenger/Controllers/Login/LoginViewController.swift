@@ -184,6 +184,9 @@ class LoginViewController: UIViewController {
                 return
             }
             
+            
+            UserDefaults.standard.setValue(authResult?.user.email , forKey: .userEmailKey)
+            
             self.navigationController?.dismiss(animated: true, completion: nil)
             
         }
@@ -292,13 +295,13 @@ extension LoginViewController : LoginButtonDelegate {
                     return
                 }
                 
+                UserDefaults.standard.setValue(authResult?.user.email , forKey: .userEmailKey)
+                
                 self.navigationController?.dismiss(animated: true, completion: nil)
             }
             
             
         }
-        
-        
         
     }
 }

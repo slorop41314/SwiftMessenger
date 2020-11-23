@@ -35,4 +35,19 @@ final class StorageManager {
             }
         }
     }
+    
+    /// Get download url based on path
+    public func downloadUrl(for path: String,completion:  @escaping(Result<URL, Error>) -> Void) {
+        let reference = storage.child(path)
+        
+        reference.downloadURL { (url, err) in
+            if let error = err {
+                completion(.failure(error))
+            }
+            
+            if let url = url {
+                completion(.success(url))
+            }
+        }
+    }
 }
