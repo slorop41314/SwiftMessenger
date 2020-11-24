@@ -109,6 +109,161 @@ extension DatabaseManager {
     }
 }
 
+
+//MARK: - Chats
+extension DatabaseManager {
+    
+    /// Create new chats with other user email and first message
+    public func createNewConversation(with otherEmail: String, firstMessage: Message, completion: @escaping ((Bool) -> Void)){
+        guard let email = UserDefaults.standard.string(forKey: .userEmailKey) else {return}
+        let safeEmail = DatabaseManager.safeEmail(email: email)
+        
+        let ref = database.child("\(safeEmail)")
+        ref.observeSingleEvent(of: .value) { (snapshot) in
+            guard var userNode = snapshot.value as?[String: Any] else {
+                completion(false)
+                return
+            }
+            
+            var message = ""
+            
+            switch firstMessage.kind {
+            case .text(let messageText):
+                message = messageText
+            case .attributedText(_):
+                break
+            case .photo(_):
+                break
+            case .video(_):
+                break
+            case .location(_):
+                break
+            case .emoji(_):
+                break
+            case .audio(_):
+                break
+            case .contact(_):
+                break
+            case .linkPreview(_):
+                break
+            case .custom(_):
+                break
+            }
+            
+            let messageDate = firstMessage.sentDate
+            let dateString = ChatViewController.dateFormatter.string(from: messageDate)
+            
+            let conversationId =  "conversation_\(firstMessage.messageId)"
+            
+            let newConversationData: [String : Any] = [
+                "id" : conversationId,
+                "other_user_email" : otherEmail,
+                "latest_message": [
+                    "date": dateString,
+                    "is_read": false,
+                    "message": message
+                    
+                ]
+            ]
+            
+            if var conversations = userNode["conversations"] as? [[String: Any]] {
+                conversations.append(newConversationData)
+                userNode["conversations"] = conversations
+            }else {
+                userNode["conversations"] = [
+                    newConversationData
+                ]
+            }
+            
+            
+            ref.setValue(userNode) { [weak self](err, _) in
+                guard let self = self else {return}
+                if let error = err {
+                    completion(false)
+                    return
+                }
+                
+                self.finishCreatingConversation(conversationId: conversationId, firstMessage: firstMessage, completion: completion)
+            }
+        }
+    }
+    
+    private func finishCreatingConversation(conversationId: String, firstMessage: Message, completion: @escaping (Bool) -> Void) {
+        
+        
+        var message = ""
+        
+        switch firstMessage.kind {
+        case .text(let messageText):
+            message = messageText
+        case .attributedText(_):
+            break
+        case .photo(_):
+            break
+        case .video(_):
+            break
+        case .location(_):
+            break
+        case .emoji(_):
+            break
+        case .audio(_):
+            break
+        case .contact(_):
+            break
+        case .linkPreview(_):
+            break
+        case .custom(_):
+            break
+        }
+        
+        guard let currentUserEmail = UserDefaults.standard.string(forKey: .userEmailKey) else {
+            completion(false)
+            return
+            
+        }
+        
+        let messageDate = firstMessage.sentDate
+        let dateString = ChatViewController.dateFormatter.string(from: messageDate)
+        
+        let collectionMessage: [String: Any] = [
+            "id" : firstMessage.messageId,
+            "type" : firstMessage.kind.MessageKindString,
+            "content" : message,
+            "date" : dateString,
+            "sender_email": DatabaseManager.safeEmail(email: currentUserEmail),
+            "is_read" : false
+        ]
+        
+        let value: [String: Any] = [
+            "messages": [
+                collectionMessage
+            ]
+        ]
+        
+        database.child("\(conversationId)").setValue(value) { (err, _) in
+            if let error = err {
+                completion(false)
+                return
+            }
+            
+            completion(true)
+        }
+    }
+    
+    /// Fetch and return all conversation
+    public func getAllConversation(for email: String, completion: @escaping ((Result<String, Error>) -> Void)) {
+        
+    }
+    
+    public func getAllMessagesForConversation(with id: String, completion: @escaping (Result<String, Error>) -> Void) {
+        
+    }
+    
+    public func sendMessage(to conversation: String, message: String, completion: @escaping (Bool) -> Void) {
+        
+    }
+}
+
 struct ChatAppUser {
     let firstName: String
     let lastName: String
