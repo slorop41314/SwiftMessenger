@@ -25,6 +25,7 @@
 		CE4C74CD2566CA480050F29D /* NewConversationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4C74CC2566CA480050F29D /* NewConversationViewController.swift */; };
 		CE4C74D22566CA570050F29D /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4C74D12566CA570050F29D /* ProfileViewController.swift */; };
 		CE58602A2568C2720010E04E /* DatabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE5860292568C2720010E04E /* DatabaseManager.swift */; };
+		CE88B4FA256FCEE200FD58F2 /* ConversationTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE88B4F9256FCEE200FD58F2 /* ConversationTableViewCell.swift */; };
 		CE98C860256A168E0014B718 /* ChatViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE98C85F256A168E0014B718 /* ChatViewController.swift */; };
 		CE98C885256A2D6A0014B718 /* StorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE98C884256A2D6A0014B718 /* StorageManager.swift */; };
 		CEC6F6FA256816C900D21A07 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CEC6F6F9256816C900D21A07 /* GoogleService-Info.plist */; };
@@ -79,6 +80,7 @@
 		CE4C74CC2566CA480050F29D /* NewConversationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewConversationViewController.swift; sourceTree = "<group>"; };
 		CE4C74D12566CA570050F29D /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
 		CE5860292568C2720010E04E /* DatabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseManager.swift; sourceTree = "<group>"; };
+		CE88B4F9256FCEE200FD58F2 /* ConversationTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationTableViewCell.swift; sourceTree = "<group>"; };
 		CE98C85F256A168E0014B718 /* ChatViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewController.swift; sourceTree = "<group>"; };
 		CE98C884256A2D6A0014B718 /* StorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageManager.swift; sourceTree = "<group>"; };
 		CEC6F6F9256816C900D21A07 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -207,6 +209,7 @@
 			children = (
 				CE4C74B42566C8E10050F29D /* Storyboard */,
 				CE4C74852566C6010050F29D /* Assets.xcassets */,
+				CE88B4F9256FCEE200FD58F2 /* ConversationTableViewCell.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -554,6 +557,7 @@
 				CE4C74C82566CA2A0050F29D /* VideoPlayerViewController.swift in Sources */,
 				CEDEFEF82567670E0061178A /* Extensions.swift in Sources */,
 				CE4C747D2566C6000050F29D /* AppDelegate.swift in Sources */,
+				CE88B4FA256FCEE200FD58F2 /* ConversationTableViewCell.swift in Sources */,
 				CE4C74D22566CA570050F29D /* ProfileViewController.swift in Sources */,
 				CEC6F70825681BFF00D21A07 /* LoginViewModel.swift in Sources */,
 				CE98C860256A168E0014B718 /* ChatViewController.swift in Sources */,
