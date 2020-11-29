@@ -7,6 +7,7 @@
 
 import Foundation
 import FirebaseDatabase
+import MessageKit
 
 final class DatabaseManager {
     static let shared = DatabaseManager()
@@ -337,8 +338,25 @@ extension DatabaseManager {
                 else {
                     return nil
                 }
+                var kind: MessageKind?
+                
+                if type == "photo" {
+                    guard let imageUrl = URL(string: content),
+                          let placeholder = UIImage(systemName: "plus")
+                          else {
+                        return nil
+                    }
+                    kind = .photo(Media(url: imageUrl, image: nil, placeholderImage: placeholder, size: CGSize(width: 250, height: 250)))
+                }else if type == "text" {
+                    kind = .text(content)
+                }
+                
+                guard let finalKind = kind else {
+                    completion(.failure(DatabaseErrors.failedToFetch))
+                    return nil
+                }
                 let sender = Sender(avatarUrl: "", senderId: senderEmail, displayName: name)
-                return Message(sender: sender, messageId: messageId, sentDate: date, kind: .text(content))
+                return Message(sender: sender, messageId: messageId, sentDate: date, kind: finalKind)
             }
             
             completion(.success(messages))
@@ -367,8 +385,10 @@ extension DatabaseManager {
                 newMessageContent = messageText
             case .attributedText(_):
                 break
-            case .photo(_):
-                break
+            case .photo(let mediaItem):
+                if let targetUrlString = mediaItem.url?.absoluteString {
+                    newMessageContent = targetUrlString
+                }
             case .video(_):
                 break
             case .location(_):
