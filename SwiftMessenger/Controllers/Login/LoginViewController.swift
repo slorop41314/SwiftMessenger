@@ -183,9 +183,24 @@ class LoginViewController: UIViewController {
                 print(error.localizedDescription)
                 return
             }
+            let safeEmail = DatabaseManager.safeEmail(email : authResult?.user.email ?? "")
             
+            DatabaseManager.shared.getDataFor(path: safeEmail) { [weak self](result) in
+                switch result {
+                case .success(let data):
+                    guard let userData = data as? [String: Any],
+                          let firstName = userData["first_name"],
+                          let lastName = userData["last_name"]
+                    else {
+                        return
+                    }
+                    UserDefaults.standard.setValue(authResult?.user.email , forKey: .userEmailKey)
+                    UserDefaults.standard.setValue("\(firstName) \(lastName)" , forKey: .userNameKey)
+                case .failure(_):
+                    print("Failed to fetch data")
+                }
+            }
             
-            UserDefaults.standard.setValue(authResult?.user.email , forKey: .userEmailKey)
             
             self.navigationController?.dismiss(animated: true, completion: nil)
             
@@ -296,6 +311,7 @@ extension LoginViewController : LoginButtonDelegate {
                 }
                 
                 UserDefaults.standard.setValue(authResult?.user.email , forKey: .userEmailKey)
+                UserDefaults.standard.setValue("\(firstName) \(lastName)" , forKey: .userNameKey)
                 
                 self.navigationController?.dismiss(animated: true, completion: nil)
             }

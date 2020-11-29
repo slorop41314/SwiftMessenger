@@ -40,4 +40,5 @@ extension Notification.Name {
 /// User defaults string key
 extension String {
     static let userEmailKey = "user_email_key"
+    static let userNameKey = "user_name_key"
 }
