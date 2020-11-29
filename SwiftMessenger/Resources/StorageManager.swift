@@ -38,13 +38,35 @@ final class StorageManager {
     
     /// Upload message picture to firebase storage, returning imageUrl String in the completion
     public func uploadMessagePhoto(with data: Data, fileName: String, completion: @escaping uploadPictureCompletion) {
-        storage.child("messages_images/\(fileName)").putData(data, metadata: nil) { (metadata, err) in
+        storage.child("messages_images/\(fileName)").putData(data, metadata: nil) { [weak self](metadata, err) in
             if let error = err {
                 completion(.failure(error))
                 return
             }
             
-             self.storage.child("messages_images/\(fileName)").downloadURL { (url, err) in
+             self?.storage.child("messages_images/\(fileName)").downloadURL { (url, err) in
+                if let error = err {
+                    completion(.failure(error))
+                    return
+                }
+                
+                guard let url = url else { return }
+                
+                completion(.success(url.absoluteString))
+                print("Download url complete")
+            }
+        }
+    }
+    
+    /// Upload message video to firebase storage, returning imageUrl String in the completion
+    public func uploadMessageVideo(with fileUrl: URL, fileName: String, completion: @escaping uploadPictureCompletion) {
+        storage.child("messages_videos/\(fileName)").putFile(from: fileUrl, metadata: nil) { [weak self](metadata, err) in
+            if let error = err {
+                completion(.failure(error))
+                return
+            }
+            
+             self?.storage.child("messages_videos/\(fileName)").downloadURL { (url, err) in
                 if let error = err {
                     completion(.failure(error))
                     return

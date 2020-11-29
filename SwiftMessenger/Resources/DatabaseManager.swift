@@ -349,6 +349,13 @@ extension DatabaseManager {
                     kind = .photo(Media(url: imageUrl, image: nil, placeholderImage: placeholder, size: CGSize(width: 250, height: 250)))
                 }else if type == "text" {
                     kind = .text(content)
+                }else if type == "video" {
+                    guard let videoUrl = URL(string: content),
+                          let placeholder = UIImage(systemName: "video")
+                          else {
+                        return nil
+                    }
+                    kind = .photo(Media(url: videoUrl, image: nil, placeholderImage: placeholder, size: CGSize(width: 250, height: 250)))
                 }
                 
                 guard let finalKind = kind else {
@@ -364,15 +371,6 @@ extension DatabaseManager {
     }
     
     public func sendMessage(to conversationId: String,otherUserEmail: String, name: String, message: Message, completion: @escaping (Bool) -> Void) {
-                
-        // Add new messages
-        
-        
-        // Update sender latest message
-        
-        // Update recepient latest message
-        
-        
         self.database.child("\(conversationId)/messages").observeSingleEvent(of: .value) { [weak self](snapshot) in
             guard let self = self else {return}
             guard var currentMsg = snapshot.value as? [[String: Any]] else {
@@ -389,8 +387,10 @@ extension DatabaseManager {
                 if let targetUrlString = mediaItem.url?.absoluteString {
                     newMessageContent = targetUrlString
                 }
-            case .video(_):
-                break
+            case .video(let mediaItem):
+                if let targetUrlString = mediaItem.url?.absoluteString {
+                    newMessageContent = targetUrlString
+                }
             case .location(_):
                 break
             case .emoji(_):
