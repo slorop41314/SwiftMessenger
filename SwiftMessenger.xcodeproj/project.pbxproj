@@ -33,6 +33,7 @@
 		CEC6F70325681A1B00D21A07 /* AuthServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEC6F70225681A1B00D21A07 /* AuthServices.swift */; };
 		CEC6F70825681BFF00D21A07 /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEC6F70725681BFF00D21A07 /* LoginViewModel.swift */; };
 		CEDEFEF82567670E0061178A /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDEFEF72567670E0061178A /* Extensions.swift */; };
+		CEFC55E125752A2600E9BED3 /* ConversationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4C74802566C6000050F29D /* ConversationViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -584,6 +585,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEFC55E125752A2600E9BED3 /* ConversationViewController.swift in Sources */,
 				CE4C749F2566C6010050F29D /* SwiftMessengerUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

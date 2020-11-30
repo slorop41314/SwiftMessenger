@@ -35,6 +35,7 @@ extension UIView {
 
 extension Notification.Name {
     static let didGoogleLoginNotification = Notification.Name("didGoogleLoginNotification")
+    static let didLoginNotification = Notification.Name("didLoginNotification")
 }
 
 /// User defaults string key

@@ -61,8 +61,29 @@ class ConversationViewController: UIViewController {
         validateAuth()
     }
     
+    
+    private var loginObserver: NSObjectProtocol?
+    
+    deinit {
+        if let _ = loginObserver {
+            NotificationCenter.default.removeObserver(loginObserver as Any)
+        }
+    }
+    
+    func setupObserver() {
+        loginObserver = NotificationCenter.default.addObserver(forName: .didLoginNotification, object: nil, queue: .main) {[weak self] notif in
+            guard let self = self else {return}
+            
+            self.startListeningForConversation()
+        }
+    }
+    
     private func startListeningForConversation() {
         guard let userEmail = UserDefaults.standard.string(forKey: .userEmailKey) else {return}
+        
+        if let observer = loginObserver {
+            NotificationCenter.default.removeObserver(loginObserver as Any)
+        }
         
         let safeEmail = DatabaseManager.safeEmail(email: userEmail)
         DatabaseManager.shared.getAllConversation(for: safeEmail) { [weak self] (result) in
@@ -160,6 +181,28 @@ extension ConversationViewController: UITableViewDelegate, UITableViewDataSource
         120
     }
     
+    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
+        return .delete
+    }
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if(editingStyle == .delete){
+            
+            let conversationId = conversations[indexPath.row].id
+            tableView.beginUpdates()
+            
+            DatabaseManager.shared.deleteConversation(conversationId: conversationId) { [weak self](success) in
+                if success {
+                    
+                    self?.conversations.remove(at: indexPath.row)
+                    
+                    tableView.deleteRows(at: [indexPath], with: .left)
+                }
+            }
+            
+            tableView.endUpdates()
+        }
+    }
     
 }
 
